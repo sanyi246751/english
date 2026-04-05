@@ -12,7 +12,7 @@ git commit -m "initial commit for Pin-Liang English app"
 
 # 3. Remote URL
 Write-Host "-------------------------------------------" -ForegroundColor Yellow
-$remotepath = Read-Host "https://github.com/sanyi246751/english.git"
+$remotepath = Read-Host "Paste your GitHub URL (https://github.com/sanyi246751/english.git)"
 Write-Host "-------------------------------------------" -ForegroundColor Yellow
 
 # 4. Remote Path Setup
