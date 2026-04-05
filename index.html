@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>品量的英語朗讀小助手 - OCR 辨識與朗讀</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1 class="glow-text">品量的英語朗讀小助手</h1>
+            <p class="subtitle">掃描、聆聽、跟讀，英文變簡單！</p>
+        </header>
+
+        <main>
+            <div class="glass-card upload-section">
+                <div class="drop-zone" id="drop-zone">
+                    <div class="icon-upload">📁</div>
+                    <p>拖曳 PDF/圖片 到這裡 或 <span>點擊瀏覽檔案</span></p>
+                    <input type="file" id="file-input" hidden accept="image/*, application/pdf">
+                </div>
+                <div class="camera-actions">
+                    <button id="btn-camera-toggle" class="btn-secondary">📷 開啟相機</button>
+                </div>
+                <div id="camera-container" class="hidden">
+                    <video id="camera-stream" autoplay playsinline></video>
+                    <button id="btn-capture" class="btn-primary">📸 拍照並辨識</button>
+                    <button id="btn-camera-close" class="btn-secondary">❌ 關閉相機</button>
+                </div>
+            </div>
+
+            <div class="glass-card controls-section">
+                <div class="grid-controls">
+                    <div class="control-group">
+                        <label>🔁 重複次數</label>
+                        <input type="number" id="repeat-count" value="1" min="1" max="10">
+                    </div>
+                    <div class="control-group">
+                        <label>⏱ 間隔 (秒)</label>
+                        <input type="number" id="interval" value="1" min="0" max="10" step="0.5">
+                    </div>
+                    <div class="control-group">
+                        <label>🔊 語速</label>
+                        <input type="range" id="rate" min="0.5" max="2" value="1" step="0.1">
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card text-section">
+                <div class="section-header">
+                    <h2>📖 品量的英語小筆記</h2>
+                    <div class="buttons">
+                        <button id="btn-read" class="btn-primary">▶ 開始朗讀</button>
+                        <button id="btn-stop" class="btn-secondary">⏹ 停止</button>
+                    </div>
+                </div>
+                <textarea id="text-output" placeholder="辨識後的文字會顯示在這裡，你也可以直接在這裡輸入或修改文字..."></textarea>
+            </div>
+            
+            <div id="status-display" class="status-indicator hidden">正在辨識文字中...</div>
+        </main>
+    </div>
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
