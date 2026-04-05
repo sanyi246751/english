@@ -1,278 +1,174 @@
-// Configuration
-const TESSERACT_LANG = 'eng';
-const STATUS_EL = document.getElementById('status-display');
 const TEXT_OUTPUT = document.getElementById('text-output');
-const RATE_VALUE_EL = document.getElementById('rate-value');
-// ... other consts
-const FILE_INPUT = document.getElementById('file-input');
-const DROP_ZONE = document.getElementById('drop-zone');
-const REPEAT_COUNT = document.getElementById('repeat-count');
+const STATUS_DISPLAY = document.getElementById('status-display');
+const REPEAT_COUNT_INPUT = document.getElementById('repeat-count');
 const INTERVAL_INPUT = document.getElementById('interval');
 const RATE_INPUT = document.getElementById('rate');
-
-const CAMERA_CONTAINER = document.getElementById('camera-container');
-const CAMERA_STREAM = document.getElementById('camera-stream');
+const RATE_VALUE_EL = document.getElementById('rate-value');
+const BTN_READ = document.getElementById('btn-read');
+const BTN_STOP = document.getElementById('btn-stop');
+const FILE_INPUT = document.getElementById('file-input');
+const BTN_UPLOAD_TRIGGER = document.getElementById('btn-upload-trigger');
 const BTN_CAMERA_TOGGLE = document.getElementById('btn-camera-toggle');
 const BTN_CAPTURE = document.getElementById('btn-capture');
 const BTN_CAMERA_CLOSE = document.getElementById('btn-camera-close');
+const VIDEO = document.getElementById('camera-stream');
+const CAMERA_CONTAINER = document.getElementById('camera-container');
 
-let isSpeaking = false;
+let isReading = false;
 let currentUtterance = null;
 let stream = null;
 
-// Helper to check libraries
-function checkLibraries() {
-    if (typeof Tesseract === 'undefined' || typeof pdfjsLib === 'undefined') {
-        alert('❌ 關鍵套件載入失敗：\n請檢查網路連線或重新整理頁面。');
-        return false;
-    }
-    return true;
-}
+// 更新語速顯示
+RATE_INPUT.addEventListener('input', (e) => {
+    RATE_VALUE_EL.textContent = parseFloat(e.target.value).toFixed(1);
+});
 
-// --- OCR Logic ---
+// 觸發隱藏的檔案選擇器
+BTN_UPLOAD_TRIGGER.addEventListener('click', () => {
+    FILE_INPUT.click();
+});
+
+// 檔案處理邏輯
+FILE_INPUT.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    processFile(file);
+});
 
 async function processFile(file) {
-    if (!checkLibraries()) return;
-    showStatus(`正在處理 ${file.name}...`);
-    try {
-        if (file.type === 'application/pdf') {
-            await processPDF(file);
-        } else if (file.type.startsWith('image/')) {
-            await processImage(file);
-        } else {
-            alert('不支援的檔案格式，請上傳圖片或 PDF。');
-        }
-    } catch (err) {
-        console.error(err);
-        alert('辨識過程中發生錯誤。');
-    } finally {
-        hideStatus();
+    if (typeof Tesseract === 'undefined' || typeof pdfjsLib === 'undefined') {
+        alert('核心組件載入中，請稍候再試...');
+        return;
     }
+
+    showStatus('正在讀取檔案...');
+    
+    if (file.type === 'application/pdf') {
+        await processPDF(file);
+    } else {
+        await processImage(file);
+    }
+    hideStatus();
 }
 
 async function processImage(file) {
-    const reader = new FileReader();
-    reader.onload = async () => {
-        const { data: { text } } = await Tesseract.recognize(reader.result, TESSERACT_LANG, {
-            logger: m => console.log(m)
-        });
+    showStatus('正在辨識圖片文字...');
+    try {
+        const { data: { text } } = await Tesseract.recognize(file, 'eng');
         TEXT_OUTPUT.value = text;
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+        alert('圖片辨識失敗：' + err.message);
+    }
 }
 
 async function processPDF(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    // Configure PDF.js worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-    
-    showStatus(`PDF 已載入：共 ${pdf.numPages} 頁。正在進行辨識...`);
-
-    for (let i = 1; i <= pdf.numPages; i++) {
-        showStatus(`正在處理第 ${i} / ${pdf.numPages} 頁...`);
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale: 2.0 }); // Higher scale for better OCR
+    showStatus('正在轉換 PDF...');
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
         
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
-        const dataUrl = canvas.toDataURL('image/png');
-
-        const { data: { text } } = await Tesseract.recognize(dataUrl, TESSERACT_LANG, {
-             logger: m => console.log(m)
-        });
-        
-        fullText += text + '\n\n';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            fullText += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        TEXT_OUTPUT.value = fullText;
+    } catch (err) {
+        alert('PDF 處理失敗：' + err.message);
     }
-    
-    TEXT_OUTPUT.value = fullText.trim();
 }
 
-// --- Camera Logic ---
-
-async function startCamera() {
-    if (!window.isSecureContext && location.hostname !== 'localhost') {
-        alert('❌ 安全環境限制：\n請使用 HTTPS 或部屬後的網址開啟，才能使用相機功能。');
+// 相機功能
+BTN_CAMERA_TOGGLE.addEventListener('click', async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert('您的瀏覽器不支援相機功能，或未在 HTTPS 安全環境下執行。');
         return;
     }
-    
-    if (!checkLibraries()) return;
-
     try {
-        const constraints = {
-            video: { 
-                facingMode: 'environment',
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
-            }
-        };
-        
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        CAMERA_STREAM.srcObject = stream;
-        
-        // Ensure video plays on iOS
-        CAMERA_STREAM.setAttribute('autoplay', '');
-        CAMERA_STREAM.setAttribute('muted', '');
-        CAMERA_STREAM.setAttribute('playsinline', '');
-        
+        stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+        });
+        VIDEO.srcObject = stream;
         CAMERA_CONTAINER.classList.remove('hidden');
         BTN_CAMERA_TOGGLE.classList.add('hidden');
-        
-        CAMERA_STREAM.play();
     } catch (err) {
-        console.error("Camera Error:", err);
-        alert('❌ 無法開啟相機，請檢查權限設定。');
+        alert('無法開啟相機：' + err.message);
     }
-}
+});
 
-function stopCamera() {
+BTN_CAMERA_CLOSE.addEventListener('click', () => {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
-        stream = null;
     }
     CAMERA_CONTAINER.classList.add('hidden');
     BTN_CAMERA_TOGGLE.classList.remove('hidden');
-}
+});
 
-async function captureAndOCR() {
-    if (!checkLibraries()) return;
+BTN_CAPTURE.addEventListener('click', async () => {
     const canvas = document.createElement('canvas');
-    canvas.width = CAMERA_STREAM.videoWidth;
-    canvas.height = CAMERA_STREAM.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(CAMERA_STREAM, 0, 0);
+    canvas.width = VIDEO.videoWidth;
+    canvas.height = VIDEO.videoHeight;
+    canvas.getContext('2d').drawImage(VIDEO, 0, 0);
     
-    showStatus('正在從相機畫面辨識文字...');
-    
-    try {
-        const dataUrl = canvas.toDataURL('image/png');
-        const { data: { text } } = await Tesseract.recognize(dataUrl, TESSERACT_LANG, {
-            logger: m => console.log(m)
-        });
-        
-        if (text.trim()) {
-            TEXT_OUTPUT.value = text.trim();
-        } else {
-            alert('辨識不到文字，請對準一點再試一次。');
-        }
-    } catch (err) {
-        console.error(err);
-        alert('相機辨識出錯了。');
-    } finally {
-        hideStatus();
-    }
-}
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg'));
+    processImage(blob);
+    BTN_CAMERA_CLOSE.click();
+});
 
-// --- Speech Logic ---
-
+// 朗讀功能
 async function speakText() {
     const text = TEXT_OUTPUT.value.trim();
     if (!text) return;
 
-    if (isSpeaking) {
-        window.speechSynthesis.cancel();
-    }
-
-    const repeats = parseInt(REPEAT_COUNT.value) || 1;
+    const repeat = parseInt(REPEAT_COUNT_INPUT.value);
     const interval = parseFloat(INTERVAL_INPUT.value) * 1000;
     const rate = parseFloat(RATE_INPUT.value);
 
-    // Split text into sentences for better learning experience
-    // This regex splits by punctuation but keeps it
-    const sentences = text.match(/[^.!?]+[.!?]*|[^.!?]+/g) || [text];
+    // 依句號分割
+    const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
     
-    isSpeaking = true;
-    
-    for (let sentence of sentences) {
-        if (!isSpeaking) break;
-        const trimmedSentence = sentence.trim();
-        if (!trimmedSentence) continue;
+    isReading = true;
+    BTN_READ.disabled = true;
 
-        for (let i = 0; i < repeats; i++) {
-            if (!isSpeaking) break;
-            
-            showStatus(`朗讀中： "${trimmedSentence.substring(0, 30)}..." (${i + 1}/${repeats})`);
+    for (let r = 0; r < repeat; r++) {
+        if (!isReading) break;
+        
+        for (const sentence of sentences) {
+            if (!isReading) break;
             
             await new Promise((resolve) => {
-                const utterance = new SpeechSynthesisUtterance(trimmedSentence);
-                utterance.lang = 'en-US';
-                utterance.rate = rate;
-                
-                utterance.onend = () => {
-                    setTimeout(resolve, interval);
-                };
-                
-                utterance.onerror = () => {
-                    isSpeaking = false;
-                    resolve();
-                };
-
-                window.speechSynthesis.speak(utterance);
+                const utter = new SpeechSynthesisUtterance(sentence.trim());
+                utter.lang = 'en-US';
+                utter.rate = rate;
+                utter.onend = resolve;
+                utter.onerror = resolve;
+                currentUtterance = utter;
+                window.speechSynthesis.speak(utter);
             });
+            
+            if (isReading) {
+                await new Promise(r => setTimeout(r, interval));
+            }
         }
     }
-    
-    isSpeaking = false;
-    hideStatus();
+
+    isReading = false;
+    BTN_READ.disabled = false;
 }
 
-function stopSpeaking() {
-    isSpeaking = false;
+BTN_READ.addEventListener('click', speakText);
+BTN_STOP.addEventListener('click', () => {
+    isReading = false;
     window.speechSynthesis.cancel();
-    hideStatus();
-}
-
-// --- UI Helpers ---
+    BTN_READ.disabled = false;
+});
 
 function showStatus(msg) {
-    STATUS_EL.textContent = msg;
-    STATUS_EL.classList.remove('hidden');
+    STATUS_DISPLAY.textContent = msg;
+    STATUS_DISPLAY.classList.remove('hidden');
 }
 
 function hideStatus() {
-    STATUS_EL.classList.add('hidden');
+    STATUS_DISPLAY.classList.add('hidden');
 }
-
-// --- Event Listeners ---
-
-DROP_ZONE.addEventListener('click', () => FILE_INPUT.click());
-
-DROP_ZONE.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    DROP_ZONE.classList.add('drag-active');
-});
-
-DROP_ZONE.addEventListener('dragleave', () => {
-    DROP_ZONE.classList.remove('drag-active');
-});
-
-DROP_ZONE.addEventListener('drop', (e) => {
-    e.preventDefault();
-    DROP_ZONE.classList.remove('drag-active');
-    const files = e.dataTransfer.files;
-    if (files.length) processFile(files[0]);
-});
-
-FILE_INPUT.addEventListener('change', (e) => {
-    if (e.target.files.length) processFile(e.target.files[0]);
-});
-
-document.getElementById('btn-read').addEventListener('click', speakText);
-document.getElementById('btn-stop').addEventListener('click', stopSpeaking);
-
-// Rate display update
-RATE_INPUT.addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value).toFixed(1);
-    RATE_VALUE_EL.textContent = val;
-});
-
-// Camera events
-BTN_CAMERA_TOGGLE.addEventListener('click', startCamera);
-BTN_CAPTURE.addEventListener('click', captureAndOCR);
-BTN_CAMERA_CLOSE.addEventListener('click', stopCamera);
