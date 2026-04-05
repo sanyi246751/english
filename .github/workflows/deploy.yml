@@ -2,33 +2,29 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
-
-permissions:
-  contents: write
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    branches:
+      - main  # 只要 push 到 main 就觸發
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 24 🔧
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 18
+          cache: 'npm'
 
-      - name: Install and Build 🏗️
+      - name: Install and Build
         run: |
-          npm install
+          npm ci
           npm run build
 
-      - name: Deploy to GitHub Pages 🚀
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          folder: dist
+          branch: gh-pages
