@@ -8,5 +8,4 @@ dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.github/
-package-lock.json
+# Removed .github to allow Actions
