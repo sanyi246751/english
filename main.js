@@ -95,27 +95,37 @@ async function processPDF(file) {
 // --- Camera Logic ---
 
 async function startCamera() {
-    if (!window.isSecureContext) {
-        alert('❌ 安全環境限制：\n相機功能要求在 HTTPS 或 Localhost 環境下運行。如果你是直接開啟檔案 (file://)，請改用 npm run dev 啟動開發伺服器。');
+    if (!window.isSecureContext && location.hostname !== 'localhost') {
+        alert('❌ 安全環境限制：\n請使用 HTTPS 或部屬後的網址開啟，才能使用相機功能。');
         return;
     }
     
+    if (!checkLibraries()) return;
+
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
-        });
+        const constraints = {
+            video: { 
+                facingMode: 'environment',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            }
+        };
+        
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         CAMERA_STREAM.srcObject = stream;
+        
+        // Ensure video plays on iOS
+        CAMERA_STREAM.setAttribute('autoplay', '');
+        CAMERA_STREAM.setAttribute('muted', '');
+        CAMERA_STREAM.setAttribute('playsinline', '');
+        
         CAMERA_CONTAINER.classList.remove('hidden');
         BTN_CAMERA_TOGGLE.classList.add('hidden');
+        
+        CAMERA_STREAM.play();
     } catch (err) {
         console.error("Camera Error:", err);
-        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-            alert('🚫 權限被拒絕：\n請在瀏覽器設定中允許此網站使用相機。');
-        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-            alert('🔍 找不到相機：\n請確定你的裝置具備相機功能。');
-        } else {
-            alert('❌ 無法開啟相機：\n請確定沒有其他程式正在佔用相機，且環境支援攝影功能。');
-        }
+        alert('❌ 無法開啟相機，請檢查權限設定。');
     }
 }
 
