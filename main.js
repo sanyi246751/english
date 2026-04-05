@@ -2,6 +2,8 @@
 const TESSERACT_LANG = 'eng';
 const STATUS_EL = document.getElementById('status-display');
 const TEXT_OUTPUT = document.getElementById('text-output');
+const RATE_VALUE_EL = document.getElementById('rate-value');
+// ... other consts
 const FILE_INPUT = document.getElementById('file-input');
 const DROP_ZONE = document.getElementById('drop-zone');
 const REPEAT_COUNT = document.getElementById('repeat-count');
@@ -263,6 +265,12 @@ FILE_INPUT.addEventListener('change', (e) => {
 
 document.getElementById('btn-read').addEventListener('click', speakText);
 document.getElementById('btn-stop').addEventListener('click', stopSpeaking);
+
+// Rate display update
+RATE_INPUT.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value).toFixed(1);
+    RATE_VALUE_EL.textContent = val;
+});
 
 // Camera events
 BTN_CAMERA_TOGGLE.addEventListener('click', startCamera);
