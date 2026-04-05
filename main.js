@@ -85,6 +85,11 @@ async function processPDF(file) {
 // --- Camera Logic ---
 
 async function startCamera() {
+    if (!window.isSecureContext) {
+        alert('❌ 安全環境限制：\n相機功能要求在 HTTPS 或 Localhost 環境下運行。如果你是直接開啟檔案 (file://)，請改用 npm run dev 啟動開發伺服器。');
+        return;
+    }
+    
     try {
         stream = await navigator.mediaDevices.getUserMedia({ 
             video: { facingMode: 'environment' } 
@@ -93,8 +98,14 @@ async function startCamera() {
         CAMERA_CONTAINER.classList.remove('hidden');
         BTN_CAMERA_TOGGLE.classList.add('hidden');
     } catch (err) {
-        console.error(err);
-        alert('無法開啟相機，請確定已授權網站使用相機功能。');
+        console.error("Camera Error:", err);
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            alert('🚫 權限被拒絕：\n請在瀏覽器設定中允許此網站使用相機。');
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+            alert('🔍 找不到相機：\n請確定你的裝置具備相機功能。');
+        } else {
+            alert('❌ 無法開啟相機：\n請確定沒有其他程式正在佔用相機，且環境支援攝影功能。');
+        }
     }
 }
 
