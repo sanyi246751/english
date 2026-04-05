@@ -38,17 +38,21 @@ body {
 .app-container {
   max-width: 900px;
   width: 100%;
+  padding: 10px; /* Less padding on small screens */
   animation: fadeIn 0.8s ease-out;
+}
+
+@media (min-width: 600px) {
+  .app-container { padding: 0; }
 }
 
 header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 h1.glow-text {
-  font-family: var(--font-header);
-  font-size: 3.5rem;
+  font-size: 2.2rem; /* Scaled down for mobile */
   font-weight: 900;
   background: linear-gradient(to right, #FF7EB9, #FFD93D);
   -webkit-background-clip: text;
@@ -56,6 +60,11 @@ h1.glow-text {
   -webkit-text-fill-color: transparent;
   margin-bottom: 8px;
   filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.05));
+}
+
+@media (min-width: 600px) {
+  header { margin-bottom: 40px; }
+  h1.glow-text { font-size: 3.5rem; }
 }
 
 .subtitle {
@@ -139,8 +148,15 @@ main {
 
 .grid-controls {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr; /* Stacks by default */
+  gap: 16px;
+}
+
+@media (min-width: 600px) {
+  .grid-controls {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+  }
 }
 
 .control-group {
@@ -188,17 +204,31 @@ input[type="number"]:focus {
 
 .buttons {
   display: flex;
-  gap: 12px;
+  flex-direction: column; /* Stack buttons on mobile */
+  gap: 8px;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .buttons {
+    flex-direction: row;
+    gap: 12px;
+    width: auto;
+  }
 }
 
 button {
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
+  padding: 16px 24px; /* Taller on mobile */
+  border-radius: 20px;
+  font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
   font-family: var(--font-main);
   border: none;
+}
+
+@media (min-width: 600px) {
+  button { padding: 12px 24px; border-radius: 12px; }
 }
 
 .btn-primary {

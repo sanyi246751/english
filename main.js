@@ -18,9 +18,19 @@ let isSpeaking = false;
 let currentUtterance = null;
 let stream = null;
 
+// Helper to check libraries
+function checkLibraries() {
+    if (typeof Tesseract === 'undefined' || typeof pdfjsLib === 'undefined') {
+        alert('❌ 關鍵套件載入失敗：\n請檢查網路連線或重新整理頁面。');
+        return false;
+    }
+    return true;
+}
+
 // --- OCR Logic ---
 
 async function processFile(file) {
+    if (!checkLibraries()) return;
     showStatus(`正在處理 ${file.name}...`);
     try {
         if (file.type === 'application/pdf') {
@@ -119,6 +129,7 @@ function stopCamera() {
 }
 
 async function captureAndOCR() {
+    if (!checkLibraries()) return;
     const canvas = document.createElement('canvas');
     canvas.width = CAMERA_STREAM.videoWidth;
     canvas.height = CAMERA_STREAM.videoHeight;
