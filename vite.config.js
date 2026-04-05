@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: "./",
   server: {
-    open: true, // Automatically open browser
+    open: true, 
     port: 3000,
   },
   build: {
