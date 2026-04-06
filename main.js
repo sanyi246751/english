@@ -18,7 +18,7 @@ let isReading = false;
 let currentUtterance = null;
 let stream = null;
 
-/// 更新語速顯示
+// 更新語速顯示
 RATE_INPUT.addEventListener('input', (e) => {
     RATE_VALUE_EL.textContent = parseFloat(e.target.value).toFixed(1);
 });
