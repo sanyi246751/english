@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "push": "git add . && git commit -m \"auto push\" && git push",
-    "preview": "vite preview"
+    "deploy": "npm run build && npx -y gh-pages -d dist",
+    "preview": "vite preview",
+    "lint": "npx -y prettier --check ."
   },
   "devDependencies": {
     "vite": "^5.0.0"
