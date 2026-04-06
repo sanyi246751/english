@@ -18,7 +18,7 @@ let isReading = false;
 let currentUtterance = null;
 let stream = null;
 
-// 更新語速顯示
+/// 更新語速顯示
 RATE_INPUT.addEventListener('input', (e) => {
     RATE_VALUE_EL.textContent = parseFloat(e.target.value).toFixed(1);
 });
@@ -42,7 +42,7 @@ async function processFile(file) {
     }
 
     showStatus('正在讀取檔案...');
-    
+
     if (file.type === 'application/pdf') {
         await processPDF(file);
     } else {
@@ -67,7 +67,7 @@ async function processPDF(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
-        
+
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const content = await page.getTextContent();
@@ -86,8 +86,8 @@ BTN_CAMERA_TOGGLE.addEventListener('click', async () => {
         return;
     }
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
+        stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'environment' }
         });
         VIDEO.srcObject = stream;
         CAMERA_CONTAINER.classList.remove('hidden');
@@ -110,7 +110,7 @@ BTN_CAPTURE.addEventListener('click', async () => {
     canvas.width = VIDEO.videoWidth;
     canvas.height = VIDEO.videoHeight;
     canvas.getContext('2d').drawImage(VIDEO, 0, 0);
-    
+
     const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg'));
     processImage(blob);
     BTN_CAMERA_CLOSE.click();
@@ -127,16 +127,16 @@ async function speakText() {
 
     // 依句號分割
     const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-    
+
     isReading = true;
     BTN_READ.disabled = true;
 
     for (let r = 0; r < repeat; r++) {
         if (!isReading) break;
-        
+
         for (const sentence of sentences) {
             if (!isReading) break;
-            
+
             await new Promise((resolve) => {
                 const utter = new SpeechSynthesisUtterance(sentence.trim());
                 utter.lang = 'en-US';
@@ -146,7 +146,7 @@ async function speakText() {
                 currentUtterance = utter;
                 window.speechSynthesis.speak(utter);
             });
-            
+
             if (isReading) {
                 await new Promise(r => setTimeout(r, interval));
             }

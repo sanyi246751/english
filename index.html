@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>品量的英語小助手</title>
     <link rel="stylesheet" href="style.css">
-    <!-- 引入必要的庫 -->
+    <!-- 引入必要的庫 --->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <header>
@@ -68,10 +70,11 @@
                 </div>
                 <textarea id="text-output" placeholder="辨識後的文字會顯示在這裡..."></textarea>
             </div>
-            
+
             <div id="status-display" class="status-indicator hidden">正在處理中...</div>
         </main>
     </div>
     <script type="module" src="main.js"></script>
 </body>
+
 </html>
