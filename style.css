@@ -1,5 +1,6 @@
 :root {
-    --primary: #FF85A1; /* 溫暖粉 */
+    --primary: #FF85A1;
+    /* 溫暖粉 *0/
     --hover-primary: #FF6B8E;
     --secondary: #64B5F6; /* 天空藍 */
     --hover-secondary: #42A5F5;
@@ -35,8 +36,15 @@ body {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 header {
@@ -96,8 +104,15 @@ header {
     max-width: 180px;
 }
 
-.btn-blue { background-color: var(--secondary); box-shadow: 0 4px 15px rgba(100, 181, 246, 0.3); }
-.btn-pink { background-color: var(--primary); box-shadow: 0 4px 15px rgba(255, 133, 161, 0.3); }
+.btn-blue {
+    background-color: var(--secondary);
+    box-shadow: 0 4px 15px rgba(100, 181, 246, 0.3);
+}
+
+.btn-pink {
+    background-color: var(--primary);
+    box-shadow: 0 4px 15px rgba(255, 133, 161, 0.3);
+}
 
 .btn-micro:hover {
     transform: scale(1.05);
@@ -149,7 +164,8 @@ header {
     margin-bottom: 6px;
 }
 
-input[type="number"], input[type="range"] {
+input[type="number"],
+input[type="range"] {
     width: 100%;
 }
 
@@ -190,7 +206,9 @@ textarea:focus {
     font-weight: 600;
 }
 
-.hidden { display: none !important; }
+.hidden {
+    display: none !important;
+}
 
 .status-indicator {
     position: fixed;
