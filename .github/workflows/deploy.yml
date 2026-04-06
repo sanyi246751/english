@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - main  # 只要 push 到 main 就觸發
+      - main  #-只要 push 到 main 就觸發
 
 jobs:
   build-and-deploy:
